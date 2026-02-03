@@ -31,25 +31,33 @@ $routeFile      = "$folderName.route.js"
 
 function To-PascalCase([string]$s) {
   $s = [string]$s
-  $clean = ($s -replace '[_\-]', ' ').Trim()
+  $s = $s.Trim()
 
-  if ([string]::IsNullOrWhiteSpace($clean)) {
-    return ""
+  if ([string]::IsNullOrWhiteSpace($s)) { return "" }
+
+  # Remplace _ et - par des espaces
+  $s = $s -replace '[_\-]', ' '
+
+  # Découpe en mots
+  $words = @($s -split '\s+' | Where-Object { $_ -ne '' })
+
+  # Si un seul mot (ex: "conversation" ou "userProfile")
+  if ($words.Count -eq 1) {
+    $w = [string]$words[0]
+    if ($w.Length -le 1) { return $w.ToUpper() }
+    return ($w.Substring(0,1).ToUpper() + $w.Substring(1))
   }
 
-  $parts = $clean -split '\s+' | Where-Object { $_ -ne '' }
-
-  if ($parts.Count -eq 1) {
-    $p = [string]$parts[0]
-    if ($p.Length -le 1) { return $p.ToUpper() }
-    return ($p.Substring(0,1).ToUpper() + $p.Substring(1))
+  # Plusieurs mots -> concat PascalCase
+  $result = ""
+  foreach ($word in $words) {
+    $w = [string]$word
+    if ($w.Length -eq 0) { continue }
+    if ($w.Length -eq 1) { $result += $w.ToUpper(); continue }
+    $result += ($w.Substring(0,1).ToUpper() + $w.Substring(1).ToLower())
   }
 
-  return ($parts | ForEach-Object {
-    $w = [string]$_
-    if ($w.Length -le 1) { $w.ToUpper() }
-    else { $w.Substring(0,1).ToUpper() + $w.Substring(1).ToLower() }
-  }) -join ''
+  return [string]$result
 }
 
 $pascalName = To-PascalCase $moduleName
