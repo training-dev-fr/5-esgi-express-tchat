@@ -1,5 +1,6 @@
 ﻿const Conversation = require('./conversation.model.js');
 const User = require('./../user/user.model.js');
+const Message = require('./../message/message.model.js');
 
 
 exports.getAll = async (req, res) => {
@@ -25,10 +26,21 @@ exports.getAll = async (req, res) => {
 }
 
 exports.getById = async (req, res) => {
-    let conversation = Conversation.findOne({
+    let conversation = await Conversation.findOne({
         where: {
             id: req.params.id
-        }
+        }, include: [{
+            model: User,
+            through: {attributes : []},
+            attributes: [],
+            required: true,
+            where: {
+                id: req.token.userId
+            },
+            as: "filter"
+        },{
+            model: Message
+        }]
     });
     res.status(200).json(conversation);
 }
