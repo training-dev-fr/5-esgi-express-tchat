@@ -46,9 +46,9 @@ exports.create = async (req, res) => {
         conversationId: req.body.conversationId,
         userId: req.token.userId
     });
-    
+
     const io = getIO();
-    io.emit("message",message);
+    io.to("conversation-"+conversation.id).emit("message",message);
 
     res.status(201).json(message);
 }
