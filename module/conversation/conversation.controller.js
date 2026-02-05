@@ -1,12 +1,23 @@
 ﻿const Conversation = require('./conversation.model.js');
+const User = require('./../user/user.model.js');
+
 
 exports.getAll = async (req, res) => {
-    let conversationList = await Conversation.findAll();
+    let conversationList = await Conversation.findAll({
+        include: [{
+            model: User,
+            through: "user_has_conversation",
+            attributes: {
+                exclude: ['password']
+            },
+
+        }]
+    });
     res.status(200).json(conversationList);
 }
 
 exports.getById = async (req, res) => {
-    let conversation =Conversation.findOne({
+    let conversation = Conversation.findOne({
         where: {
             id: req.params.id
         }
@@ -16,6 +27,19 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     let conversation = await Conversation.create(req.body);
+    let author = await User.findOne({
+        where: {
+            id: req.token.userId
+        }
+    });
+    conversation.addUser(author);
+    let recipient = await User.findOne({
+        where: {
+            id: req.body.userId
+        }
+    });
+    conversation.addUser(recipient);
+
     res.status(201).json(conversation);
 }
 
