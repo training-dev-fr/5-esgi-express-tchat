@@ -7,18 +7,18 @@ exports.getAll = async (req, res) => {
     let conversationList = await Conversation.findAll({
         include: [{
             model: User,
-            through: {attributes : []},
+            through: { attributes: [] },
             attributes: [],
             required: true,
             where: {
                 id: req.token.userId
             },
             as: "filter"
-        },{
+        }, {
             model: User,
             as: "users",
-            attributes: {exclude: ["password"]},
-            through: {attributes : []},
+            attributes: { exclude: ["password"] },
+            through: { attributes: [] },
             required: false
         }]
     });
@@ -31,14 +31,14 @@ exports.getById = async (req, res) => {
             id: req.params.id
         }, include: [{
             model: User,
-            through: {attributes : []},
+            through: { attributes: [] },
             attributes: [],
             required: true,
             where: {
                 id: req.token.userId
             },
             as: "filter"
-        },{
+        }, {
             model: Message
         }]
     });
@@ -65,4 +65,35 @@ exports.create = async (req, res) => {
 
 exports.send = async (req, res) => {
 
+}
+
+exports.addContact = async (req, res) => {
+    let contact = await User.findOne({
+        where: {
+            id: req.body.userId
+        }
+    });
+    if (!contact) {
+        return res.status(404).json({ error: "Contact does not exists" });
+    }
+    let conversation = await Conversation.findOne({
+        where: {
+            id: req.body.conversationId
+        },
+        include: [{
+            model: User,
+            as: "users"
+        }]
+    });
+    if (!conversation) {
+       return res.status(404).json({ error: "Conversation does not exists" });
+    }
+    if(!conversation.users.some(user => user.id === req.token.userId)){
+        return res.status(401).json({error: "You are not in this conversation"});
+    }
+    if(conversation.users.some(user => user.id === req.body.userId)){
+        return res.status(400).json({error: "User is already in this conversation"});
+    }
+    await Conversation.addUser(contact);
+    res.status(201).json({message: "Contact ajouté"});
 }

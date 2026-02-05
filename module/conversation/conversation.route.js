@@ -7,5 +7,6 @@ router.post('/',authMiddleware,conversationController.create);
 router.post('/message',conversationController.send);
 router.get('/',authMiddleware,conversationController.getAll);
 router.get('/:id',authMiddleware,conversationController.getById);
+router.post('/addContact',authMiddleware,conversationController.addContact);
 
 module.exports = router;
