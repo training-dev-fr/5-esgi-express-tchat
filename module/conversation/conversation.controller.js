@@ -6,11 +6,19 @@ exports.getAll = async (req, res) => {
     let conversationList = await Conversation.findAll({
         include: [{
             model: User,
-            through: "user_has_conversation",
-            attributes: {
-                exclude: ['password']
+            through: {attributes : []},
+            attributes: [],
+            required: true,
+            where: {
+                id: req.token.userId
             },
-
+            as: "filter"
+        },{
+            model: User,
+            as: "users",
+            attributes: {exclude: ["password"]},
+            through: {attributes : []},
+            required: false
         }]
     });
     res.status(200).json(conversationList);
